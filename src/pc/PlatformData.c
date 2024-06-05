@@ -11,7 +11,7 @@
 #include "XLinkPlatform.h"
 #include "XLinkPlatformErrorUtils.h"
 #include "XLinkStringUtils.h"
-#include "usb_host.h"
+// #include "usb_host.h"
 #include "pcie_host.h"
 #include "tcpip_host.h"
 #include "PlatformDeviceFd.h"
@@ -45,17 +45,17 @@
 #include <arpa/inet.h>
 #endif  /*USE_LINK_JTAG*/
 
-#ifndef USE_USB_VSC
-#include <sys/wait.h>
-#include <sys/un.h>
-#include <sys/ioctl.h>
-#include <termios.h>
-
-#include "usb_host.h"
-
-extern int usbFdWrite;
-extern int usbFdRead;
-#endif  /*USE_USB_VSC*/
+// #ifndef USE_USB_VSC
+// #include <sys/wait.h>
+// #include <sys/un.h>
+// #include <sys/ioctl.h>
+// #include <termios.h>
+// 
+// #include "usb_host.h"
+// 
+// extern int usbFdWrite;
+// extern int usbFdRead;
+// #endif  /*USE_USB_VSC*/
 
 // ------------------------------------
 // Wrappers declaration. Begin.
@@ -84,10 +84,10 @@ int XLinkPlatformWrite(xLinkDeviceHandle_t *deviceHandle, void *data, int size)
     }
 
     switch (deviceHandle->protocol) {
-        case X_LINK_USB_VSC:
-        case X_LINK_USB_CDC:
-            return usbPlatformWrite(deviceHandle->xLinkFD, data, size);
-
+//        case X_LINK_USB_VSC:
+//        case X_LINK_USB_CDC:
+//            return usbPlatformWrite(deviceHandle->xLinkFD, data, size);
+//
         case X_LINK_PCIE:
             return pciePlatformWrite(deviceHandle->xLinkFD, data, size);
 
@@ -106,9 +106,9 @@ int XLinkPlatformRead(xLinkDeviceHandle_t *deviceHandle, void *data, int size)
     }
 
     switch (deviceHandle->protocol) {
-        case X_LINK_USB_VSC:
-        case X_LINK_USB_CDC:
-            return usbPlatformRead(deviceHandle->xLinkFD, data, size);
+//        case X_LINK_USB_VSC:
+//        case X_LINK_USB_CDC:
+//            return usbPlatformRead(deviceHandle->xLinkFD, data, size);
 
         case X_LINK_PCIE:
             return pciePlatformRead(deviceHandle->xLinkFD, data, size);

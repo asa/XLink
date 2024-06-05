@@ -254,13 +254,13 @@ XLinkError_t XLinkConnect(XLinkHandler_t* handler)
     }
 
     link->peerState = XLINK_UP;
-    #if (!defined(_WIN32) && !defined(_WIN64) )
-        link->usbConnSpeed = get_usb_speed();
-        mv_strcpy(link->mxSerialId, XLINK_MAX_MX_ID_SIZE, get_mx_serial());
-    #else
-        link->usbConnSpeed = X_LINK_USB_SPEED_UNKNOWN;
-        mv_strcpy(link->mxSerialId, XLINK_MAX_MX_ID_SIZE, "UNKNOWN");
-    #endif
+//    #if (!defined(_WIN32) && !defined(_WIN64) )
+//        link->usbConnSpeed = get_usb_speed();
+//        mv_strcpy(link->mxSerialId, XLINK_MAX_MX_ID_SIZE, get_mx_serial());
+//    #else
+//        link->usbConnSpeed = X_LINK_USB_SPEED_UNKNOWN;
+//        mv_strcpy(link->mxSerialId, XLINK_MAX_MX_ID_SIZE, "UNKNOWN");
+//    #endif
 
     link->hostClosedFD = 0;
     handler->linkId = link->id;

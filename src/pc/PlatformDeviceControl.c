@@ -7,7 +7,7 @@
 
 #include "XLinkPlatform.h"
 #include "XLinkPlatformErrorUtils.h"
-#include "usb_host.h"
+// #include "usb_host.h"
 #include "pcie_host.h"
 #include "tcpip_host.h"
 #include "XLinkStringUtils.h"
@@ -16,28 +16,28 @@
 #define MVLOG_UNIT_NAME PlatformDeviceControl
 #include "XLinkLog.h"
 
-#ifndef USE_USB_VSC
-#include <sys/wait.h>
-#include <sys/un.h>
-#include <sys/ioctl.h>
-#include <termios.h>
-#include <fcntl.h>
-
-int usbFdWrite = -1;
-int usbFdRead = -1;
-#endif  /*USE_USB_VSC*/
+// #ifndef USE_USB_VSC
+// #include <sys/wait.h>
+// #include <sys/un.h>
+// #include <sys/ioctl.h>
+// #include <termios.h>
+// #include <fcntl.h>
+// 
+// int usbFdWrite = -1;
+// int usbFdRead = -1;
+// #endif  /*USE_USB_VSC*/
 
 #include "XLinkPublicDefines.h"
 
-#define USB_LINK_SOCKET_PORT 5678
+// #define USB_LINK_SOCKET_PORT 5678
 #define UNUSED __attribute__((unused))
 
 
-static UsbSpeed_t usb_speed_enum = X_LINK_USB_SPEED_UNKNOWN;
+// static UsbSpeed_t usb_speed_enum = X_LINK_USB_SPEED_UNKNOWN;
 static char mx_serial[XLINK_MAX_MX_ID_SIZE] = { 0 };
-#ifdef USE_USB_VSC
-static const int statuswaittimeout = 5;
-#endif
+// #ifdef USE_USB_VSC
+// static const int statuswaittimeout = 5;
+// #endif
 
 #ifdef USE_TCP_IP
 
@@ -65,7 +65,7 @@ static const int statuswaittimeout = 5;
 static int pciePlatformConnect(UNUSED const char *devPathRead, const char *devPathWrite, void **fd);
 static int tcpipPlatformConnect(const char *devPathRead, const char *devPathWrite, void **fd);
 
-static xLinkPlatformErrorCode_t usbPlatformBootBootloader(const char *name);
+// static xLinkPlatformErrorCode_t usbPlatformBootBootloader(const char *name);
 static int pciePlatformBootBootloader(const char *name);
 static xLinkPlatformErrorCode_t tcpipPlatformBootBootloader(const char *name);
 
@@ -94,9 +94,9 @@ xLinkPlatformErrorCode_t XLinkPlatformInit(void* options)
     }
 
     // check for failed initialization; LIBUSB_SUCCESS = 0
-    if (usbInitialize(options) != 0) {
-        xlinkSetProtocolInitialized(X_LINK_USB_VSC, 0);
-    }
+//     if (usbInitialize(options) != 0) {
+//         xlinkSetProtocolInitialized(X_LINK_USB_VSC, 0);
+//     }
 
     // TODO(themarpe) - move to tcpip_host
     //tcpipInitialize();
@@ -157,9 +157,9 @@ xLinkPlatformErrorCode_t XLinkPlatformBootFirmware(const deviceDesc_t* deviceDes
     }
 
     switch (deviceDesc->protocol) {
-        case X_LINK_USB_VSC:
-        case X_LINK_USB_CDC:
-            return usbPlatformBootFirmware(deviceDesc, firmware, length);
+//         case X_LINK_USB_VSC:
+//         case X_LINK_USB_CDC:
+//             return usbPlatformBootFirmware(deviceDesc, firmware, length);
 
         case X_LINK_PCIE:
             return pciePlatformBootFirmware(deviceDesc, firmware, length);
@@ -180,9 +180,9 @@ xLinkPlatformErrorCode_t XLinkPlatformConnect(const char* devPathRead, const cha
         return X_LINK_PLATFORM_DRIVER_NOT_LOADED+protocol;
     }
     switch (protocol) {
-        case X_LINK_USB_VSC:
-        case X_LINK_USB_CDC:
-            return usbPlatformConnect(devPathRead, devPathWrite, fd);
+//         case X_LINK_USB_VSC:
+//         case X_LINK_USB_CDC:
+//             return usbPlatformConnect(devPathRead, devPathWrite, fd);
 
         case X_LINK_PCIE:
             return pciePlatformConnect(devPathRead, devPathWrite, fd);
@@ -201,9 +201,9 @@ xLinkPlatformErrorCode_t XLinkPlatformBootBootloader(const char* name, XLinkProt
         return X_LINK_PLATFORM_DRIVER_NOT_LOADED+protocol;
     }
     switch (protocol) {
-        case X_LINK_USB_VSC:
-        case X_LINK_USB_CDC:
-            return usbPlatformBootBootloader(name);
+//         case X_LINK_USB_VSC:
+//         case X_LINK_USB_CDC:
+//             return usbPlatformBootBootloader(name);
 
         case X_LINK_PCIE:
             return pciePlatformBootBootloader(name);
@@ -228,9 +228,9 @@ xLinkPlatformErrorCode_t XLinkPlatformCloseRemote(xLinkDeviceHandle_t* deviceHan
     }
 
     switch (deviceHandle->protocol) {
-        case X_LINK_USB_VSC:
-        case X_LINK_USB_CDC:
-            return usbPlatformClose(deviceHandle->xLinkFD);
+//         case X_LINK_USB_VSC:
+//         case X_LINK_USB_CDC:
+//             return usbPlatformClose(deviceHandle->xLinkFD);
 
         case X_LINK_PCIE:
             return pciePlatformClose(deviceHandle->xLinkFD);
@@ -255,9 +255,9 @@ xLinkPlatformErrorCode_t XLinkPlatformCloseRemote(xLinkDeviceHandle_t* deviceHan
  *  getter will return empty or different value
  *  if called before XLinkConnect.
  */
-UsbSpeed_t get_usb_speed(){
-    return usb_speed_enum;
-}
+// UsbSpeed_t get_usb_speed(){
+//     return usb_speed_enum;
+// }
 
 /**
  * getter to obtain the Mx serial id which was received by
@@ -267,11 +267,11 @@ UsbSpeed_t get_usb_speed(){
  *  if called before XLinkConnect.
  */
 const char* get_mx_serial(){
-    #ifdef USE_USB_VSC
-        return mx_serial;
-    #else
+//     #ifdef USE_USB_VSC
+//         return mx_serial;
+//     #else
         return "UNKNOWN";
-    #endif
+//     #endif
 }
 
 // ------------------------------------
@@ -369,10 +369,10 @@ int tcpipPlatformConnect(const char *devPathRead, const char *devPathWrite, void
 }
 
 
-xLinkPlatformErrorCode_t usbPlatformBootBootloader(const char *name)
-{
-    return usbLinkBootBootloader(name);
-}
+// xLinkPlatformErrorCode_t usbPlatformBootBootloader(const char *name)
+// {
+//     return usbLinkBootBootloader(name);
+// }
 
 int pciePlatformBootBootloader(const char *name)
 {
