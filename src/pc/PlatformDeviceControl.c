@@ -412,6 +412,7 @@ int tcpipPlatformClose(void *fdKey) {
     return -1;
 }
 
+/*
 int pciePlatformBootFirmware(const deviceDesc_t *deviceDesc, const char *firmware, size_t length) {
     // Temporary open fd to boot device and then close it
     int *pcieFd = NULL;
@@ -427,6 +428,7 @@ int pciePlatformBootFirmware(const deviceDesc_t *deviceDesc, const char *firmwar
     pcie_close(pcieFd);  // Will not check result for now
     return rc;
 }
+*/
 
 int tcpipPlatformBootFirmware(const deviceDesc_t *deviceDesc, const char *firmware, size_t length) {
     // TCPIP doesn't support a boot mechanism
