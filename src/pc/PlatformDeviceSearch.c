@@ -6,11 +6,28 @@
 
 #include "XLinkPlatform.h"
 #include "XLinkPlatformErrorUtils.h"
-#include "usb_host.h"
-#include "pcie_host.h"
-#include "tcpip_host.h"
-#include "XLinkStringUtils.h"
+// #include "usb_host.h"
+// these are copied in from usb_host.h
+#define AUTO_VID 0
+#define AUTO_PID 0
+#define AUTO_UNBOOTED_PID -1
 
+#define DEFAULT_OPENVID 0x03E7
+#ifdef ALTERNATE_PID
+#define DEFAULT_OPENPID 0xf63c  // Once opened in VSC mode, VID/PID change
+#else
+#define DEFAULT_OPENPID 0xf63b  // Once opened in VSC mode, VID/PID change
+#endif
+#define DEFAULT_UNBOOTVID 0x03E7
+#define DEFAULT_UNBOOTPID_2485 0x2485
+#define DEFAULT_UNBOOTPID_2150 0x2150
+#define DEFAULT_BOOTLOADER_PID 0xf63c
+#define DEFAULT_FLASH_BOOTED_PID 0xf63d
+#define DEFAULT_CHUNKSZ 1024 * 1024
+
+#include "XLinkStringUtils.h"
+// #include "pcie_host.h"
+#include "tcpip_host.h"
 
 #define MVLOG_UNIT_NAME PlatformDeviceSearch
 #include "XLinkLog.h"
@@ -20,66 +37,67 @@
 // ------------------------------------
 
 static int platformToPid(const XLinkPlatform_t platform, const XLinkDeviceState_t state);
-static pciePlatformState_t xlinkDeviceStateToPciePlatformState(const XLinkDeviceState_t state);
+// static pciePlatformState_t xlinkDeviceStateToPciePlatformState(const XLinkDeviceState_t state);
 
-static xLinkPlatformErrorCode_t parseUsbBootError(usbBootError_t rc);
-static xLinkPlatformErrorCode_t parsePCIeHostError(pcieHostError_t rc);
+// static xLinkPlatformErrorCode_t parseUsbBootError(usbBootError_t rc);
+// static xLinkPlatformErrorCode_t parsePCIeHostError(pcieHostError_t rc);
 
-xLinkPlatformErrorCode_t getUSBDevices(const deviceDesc_t in_deviceRequirements,
-                                                     deviceDesc_t* out_foundDevices, int sizeFoundDevices,
-                                                     unsigned int *out_amountOfFoundDevices);
-static xLinkPlatformErrorCode_t getPCIeDeviceName(int index,
-                                                  XLinkDeviceState_t state,
+/*
+xLinkPlatformErrorCode_t getUSBDevices(const deviceDesc_t in_deviceRequirements, deviceDesc_t* out_foundDevices,
+                                       int sizeFoundDevices, unsigned int* out_amountOfFoundDevices);
+static xLinkPlatformErrorCode_t getPCIeDeviceName(int index, XLinkDeviceState_t state,
                                                   const deviceDesc_t in_deviceRequirements,
                                                   deviceDesc_t* out_foundDevice);
+*/
 static xLinkPlatformErrorCode_t getTcpIpDevices(const deviceDesc_t in_deviceRequirements,
-                                                    deviceDesc_t* out_foundDevices, int sizeFoundDevices,
-                                                    unsigned int *out_amountOfFoundDevices);
-
+                                                deviceDesc_t* out_foundDevices, int sizeFoundDevices,
+                                                unsigned int* out_amountOfFoundDevices);
 
 // ------------------------------------
 // Helpers declaration. End.
 // ------------------------------------
-
 
 // ------------------------------------
 // XLinkPlatform API implementation. Begin.
 // ------------------------------------
 
 xLinkPlatformErrorCode_t XLinkPlatformFindDevices(const deviceDesc_t in_deviceRequirements,
-                                                     deviceDesc_t* out_foundDevices, unsigned sizeFoundDevices,
-                                                     unsigned int *out_amountOfFoundDevices) {
+                                                  deviceDesc_t* out_foundDevices, unsigned sizeFoundDevices,
+                                                  unsigned int* out_amountOfFoundDevices) {
     memset(out_foundDevices, sizeFoundDevices, sizeof(deviceDesc_t));
-    xLinkPlatformErrorCode_t USB_rc;
-    xLinkPlatformErrorCode_t PCIe_rc;
+    //    xLinkPlatformErrorCode_t USB_rc;
+    //    xLinkPlatformErrorCode_t PCIe_rc;
     xLinkPlatformErrorCode_t TCPIP_rc;
     unsigned numFoundDevices = 0;
     *out_amountOfFoundDevices = 0;
 
-    switch (in_deviceRequirements.protocol){
-        case X_LINK_USB_CDC:
-        case X_LINK_USB_VSC:
-            if(!XLinkIsProtocolInitialized(in_deviceRequirements.protocol)) {
-                return X_LINK_PLATFORM_DRIVER_NOT_LOADED+in_deviceRequirements.protocol;
-            }
-            // Check if protocol is initialized
-            return getUSBDevices(in_deviceRequirements, out_foundDevices, sizeFoundDevices, out_amountOfFoundDevices);
+    switch (in_deviceRequirements.protocol) {
+            /*
+            case X_LINK_USB_CDC:
+            case X_LINK_USB_VSC:
+                if (!XLinkIsProtocolInitialized(in_deviceRequirements.protocol)) {
+                    return X_LINK_PLATFORM_DRIVER_NOT_LOADED + in_deviceRequirements.protocol;
+                }
+                // Check if protocol is initialized
+                return getUSBDevices(in_deviceRequirements, out_foundDevices, sizeFoundDevices,
+            out_amountOfFoundDevices);
 
-        /* TODO(themarpe) - reenable PCIe
-        case X_LINK_PCIE:
-            return getPCIeDeviceName(0, state, in_deviceRequirements, out_foundDevice);
-        */
+                 TODO(themarpe) - reenable PCIe
+                case X_LINK_PCIE:
+                    return getPCIeDeviceName(0, state, in_deviceRequirements, out_foundDevice);
+                */
 
         case X_LINK_TCP_IP:
-            if(!XLinkIsProtocolInitialized(in_deviceRequirements.protocol)) {
-                return X_LINK_PLATFORM_DRIVER_NOT_LOADED+in_deviceRequirements.protocol;
+            if (!XLinkIsProtocolInitialized(in_deviceRequirements.protocol)) {
+                return X_LINK_PLATFORM_DRIVER_NOT_LOADED + in_deviceRequirements.protocol;
             }
             return getTcpIpDevices(in_deviceRequirements, out_foundDevices, sizeFoundDevices, out_amountOfFoundDevices);
 
         case X_LINK_ANY_PROTOCOL:
 
             // If USB protocol is initialized
-            if(XLinkIsProtocolInitialized(X_LINK_USB_VSC)) {
+            /*
+            if (XLinkIsProtocolInitialized(X_LINK_USB_VSC)) {
                 // Find first correct USB Device
                 numFoundDevices = 0;
                 USB_rc = getUSBDevices(in_deviceRequirements, out_foundDevices, sizeFoundDevices, &numFoundDevices);
@@ -92,7 +110,7 @@ xLinkPlatformErrorCode_t XLinkPlatformFindDevices(const deviceDesc_t in_deviceRe
                     sizeFoundDevices -= numFoundDevices;
                 }
             }
-
+            */
 
             /* TODO(themarpe) - reenable PCIe
             if(XLinkIsProtocolInitialized(X_LINK_PCIE)) {
@@ -110,7 +128,7 @@ xLinkPlatformErrorCode_t XLinkPlatformFindDevices(const deviceDesc_t in_deviceRe
             */
 
             // Try find TCPIP device
-            if(XLinkIsProtocolInitialized(X_LINK_TCP_IP)) {
+            if (XLinkIsProtocolInitialized(X_LINK_TCP_IP)) {
                 numFoundDevices = 0;
                 TCPIP_rc = getTcpIpDevices(in_deviceRequirements, out_foundDevices, sizeFoundDevices, &numFoundDevices);
                 *out_amountOfFoundDevices += numFoundDevices;
@@ -134,9 +152,8 @@ xLinkPlatformErrorCode_t XLinkPlatformFindDevices(const deviceDesc_t in_deviceRe
     return X_LINK_PLATFORM_SUCCESS;
 }
 
-
-int XLinkPlatformIsDescriptionValid(const deviceDesc_t *in_deviceDesc, const XLinkDeviceState_t state) {
-    if(!in_deviceDesc){
+int XLinkPlatformIsDescriptionValid(const deviceDesc_t* in_deviceDesc, const XLinkDeviceState_t state) {
+    if (!in_deviceDesc) {
         return 0;
     }
 
@@ -145,41 +162,56 @@ int XLinkPlatformIsDescriptionValid(const deviceDesc_t *in_deviceDesc, const XLi
 
 char* XLinkPlatformErrorToStr(const xLinkPlatformErrorCode_t errorCode) {
     switch (errorCode) {
-        case X_LINK_PLATFORM_SUCCESS: return "X_LINK_PLATFORM_SUCCESS";
-        case X_LINK_PLATFORM_DEVICE_NOT_FOUND: return "X_LINK_PLATFORM_DEVICE_NOT_FOUND";
-        case X_LINK_PLATFORM_ERROR: return "X_LINK_PLATFORM_ERROR";
-        case X_LINK_PLATFORM_TIMEOUT: return "X_LINK_PLATFORM_TIMEOUT";
-        case X_LINK_PLATFORM_USB_DRIVER_NOT_LOADED: return "X_LINK_PLATFORM_USB_DRIVER_NOT_LOADED";
-        case X_LINK_PLATFORM_TCP_IP_DRIVER_NOT_LOADED: return "X_LINK_PLATFORM_TCP_IP_DRIVER_NOT_LOADED";
-        case X_LINK_PLATFORM_PCIE_DRIVER_NOT_LOADED: return "X_LINK_PLATFORM_PCIE_DRIVER_NOT_LOADED";
-        case X_LINK_PLATFORM_INVALID_PARAMETERS: return "X_LINK_PLATFORM_INVALID_PARAMETERS";
-        default: return "";
+        case X_LINK_PLATFORM_SUCCESS:
+            return "X_LINK_PLATFORM_SUCCESS";
+        case X_LINK_PLATFORM_DEVICE_NOT_FOUND:
+            return "X_LINK_PLATFORM_DEVICE_NOT_FOUND";
+        case X_LINK_PLATFORM_ERROR:
+            return "X_LINK_PLATFORM_ERROR";
+        case X_LINK_PLATFORM_TIMEOUT:
+            return "X_LINK_PLATFORM_TIMEOUT";
+            //        case X_LINK_PLATFORM_USB_DRIVER_NOT_LOADED:
+            //            return "X_LINK_PLATFORM_USB_DRIVER_NOT_LOADED";
+        case X_LINK_PLATFORM_TCP_IP_DRIVER_NOT_LOADED:
+            return "X_LINK_PLATFORM_TCP_IP_DRIVER_NOT_LOADED";
+            //        case X_LINK_PLATFORM_PCIE_DRIVER_NOT_LOADED:
+            //            return "X_LINK_PLATFORM_PCIE_DRIVER_NOT_LOADED";
+        case X_LINK_PLATFORM_INVALID_PARAMETERS:
+            return "X_LINK_PLATFORM_INVALID_PARAMETERS";
+        default:
+            return "";
     }
 }
 
 XLinkPlatform_t XLinkPlatformPidToPlatform(const int pid) {
     switch (pid) {
-        case DEFAULT_UNBOOTPID_2150: return X_LINK_MYRIAD_2;
-        case DEFAULT_UNBOOTPID_2485: return X_LINK_MYRIAD_X;
-        default:       return X_LINK_ANY_PLATFORM;
+        case DEFAULT_UNBOOTPID_2150:
+            return X_LINK_MYRIAD_2;
+        case DEFAULT_UNBOOTPID_2485:
+            return X_LINK_MYRIAD_X;
+        default:
+            return X_LINK_ANY_PLATFORM;
     }
 }
 
 XLinkDeviceState_t XLinkPlatformPidToState(const int pid) {
     switch (pid) {
-        case DEFAULT_OPENPID: return X_LINK_BOOTED;
-        case DEFAULT_BOOTLOADER_PID: return X_LINK_BOOTLOADER;
-        case DEFAULT_FLASH_BOOTED_PID: return X_LINK_FLASH_BOOTED;
-        case AUTO_PID: return X_LINK_ANY_STATE;
-        default:       return X_LINK_UNBOOTED;
+        case DEFAULT_OPENPID:
+            return X_LINK_BOOTED;
+        case DEFAULT_BOOTLOADER_PID:
+            return X_LINK_BOOTLOADER;
+        case DEFAULT_FLASH_BOOTED_PID:
+            return X_LINK_FLASH_BOOTED;
+        case AUTO_PID:
+            return X_LINK_ANY_STATE;
+        default:
+            return X_LINK_UNBOOTED;
     }
 }
 
 // ------------------------------------
 // XLinkPlatform API implementation. End.
 // ------------------------------------
-
-
 
 // ------------------------------------
 // Helpers implementation. Begin.
@@ -188,32 +220,42 @@ XLinkDeviceState_t XLinkPlatformPidToState(const int pid) {
 int platformToPid(const XLinkPlatform_t platform, const XLinkDeviceState_t state) {
     if (state == X_LINK_UNBOOTED) {
         switch (platform) {
-            case X_LINK_MYRIAD_2:  return DEFAULT_UNBOOTPID_2150;
-            case X_LINK_MYRIAD_X:  return DEFAULT_UNBOOTPID_2485;
-            default:               return AUTO_UNBOOTED_PID;
+            case X_LINK_MYRIAD_2:
+                return DEFAULT_UNBOOTPID_2150;
+            case X_LINK_MYRIAD_X:
+                return DEFAULT_UNBOOTPID_2485;
+            default:
+                return AUTO_UNBOOTED_PID;
         }
     } else if (state == X_LINK_BOOTED) {
         return DEFAULT_OPENPID;
-    } else if(state == X_LINK_BOOTLOADER){
+    } else if (state == X_LINK_BOOTLOADER) {
         return DEFAULT_BOOTLOADER_PID;
-    } else if(state == X_LINK_FLASH_BOOTED){
+    } else if (state == X_LINK_FLASH_BOOTED) {
         return DEFAULT_FLASH_BOOTED_PID;
     } else if (state == X_LINK_ANY_STATE) {
         switch (platform) {
-            case X_LINK_MYRIAD_2:  return DEFAULT_UNBOOTPID_2150;
-            case X_LINK_MYRIAD_X:  return DEFAULT_UNBOOTPID_2485;
-            default:               return AUTO_PID;
+            case X_LINK_MYRIAD_2:
+                return DEFAULT_UNBOOTPID_2150;
+            case X_LINK_MYRIAD_X:
+                return DEFAULT_UNBOOTPID_2485;
+            default:
+                return AUTO_PID;
         }
     }
 
     return AUTO_PID;
 }
 
+/*
 pciePlatformState_t xlinkDeviceStateToPciePlatformState(const XLinkDeviceState_t state) {
     switch (state) {
-        case X_LINK_ANY_STATE:  return PCIE_PLATFORM_ANY_STATE;
-        case X_LINK_BOOTED:     return PCIE_PLATFORM_BOOTED;
-        case X_LINK_UNBOOTED:   return PCIE_PLATFORM_UNBOOTED;
+        case X_LINK_ANY_STATE:
+            return PCIE_PLATFORM_ANY_STATE;
+        case X_LINK_BOOTED:
+            return PCIE_PLATFORM_BOOTED;
+        case X_LINK_UNBOOTED:
+            return PCIE_PLATFORM_UNBOOTED;
         default:
             return PCIE_PLATFORM_ANY_STATE;
     }
@@ -252,47 +294,42 @@ xLinkPlatformErrorCode_t parsePCIeHostError(pcieHostError_t rc) {
     }
 }
 
-xLinkPlatformErrorCode_t getPCIeDeviceName(int index,
-                                                  XLinkDeviceState_t state,
-                                                  const deviceDesc_t in_deviceRequirements,
-                                                  deviceDesc_t* out_foundDevice) {
+xLinkPlatformErrorCode_t getPCIeDeviceName(int index, XLinkDeviceState_t state,
+                                           const deviceDesc_t in_deviceRequirements, deviceDesc_t* out_foundDevice) {
     ASSERT_XLINK_PLATFORM(index >= 0);
     ASSERT_XLINK_PLATFORM(out_foundDevice);
     if (in_deviceRequirements.platform == X_LINK_MYRIAD_2) {
-        /**
-         * There is no PCIe on Myriad 2. Asserting that check
-         * produces enormous amount of logs in tests.
-         */
+//
+//         * There is no PCIe on Myriad 2. Asserting that check
+//         * produces enormous amount of logs in tests.
+//
         return X_LINK_PLATFORM_ERROR;
     }
 
-    char name[XLINK_MAX_NAME_SIZE] = { 0 };
+    char name[XLINK_MAX_NAME_SIZE] = {0};
 
     if (strlen(in_deviceRequirements.name) > 0) {
         mv_strcpy(name, XLINK_MAX_NAME_SIZE, in_deviceRequirements.name);
     }
 
-    pcieHostError_t pcieHostRc = pcie_find_device_port(
-        index, name, XLINK_MAX_NAME_SIZE, xlinkDeviceStateToPciePlatformState(state));
+    pcieHostError_t pcieHostRc =
+        pcie_find_device_port(index, name, XLINK_MAX_NAME_SIZE, xlinkDeviceStateToPciePlatformState(state));
 
     xLinkPlatformErrorCode_t xLinkRc = parsePCIeHostError(pcieHostRc);
 
-    if(xLinkRc == X_LINK_PLATFORM_SUCCESS)
-    {
+    if (xLinkRc == X_LINK_PLATFORM_SUCCESS) {
         if (xLinkRc == X_LINK_PLATFORM_SUCCESS) {
             mv_strcpy(out_foundDevice->name, XLINK_MAX_NAME_SIZE, name);
             out_foundDevice->protocol = X_LINK_PCIE;
             out_foundDevice->platform = X_LINK_MYRIAD_X;
         }
-
     }
     return xLinkRc;
 }
+*/
 
-xLinkPlatformErrorCode_t getTcpIpDevices(const deviceDesc_t in_deviceRequirements,
-                                                    deviceDesc_t* out_foundDevices, int sizeFoundDevices,
-                                                    unsigned int *out_amountOfFoundDevices)
-{
+xLinkPlatformErrorCode_t getTcpIpDevices(const deviceDesc_t in_deviceRequirements, deviceDesc_t* out_foundDevices,
+                                         int sizeFoundDevices, unsigned int* out_amountOfFoundDevices) {
     ASSERT_XLINK_PLATFORM(out_foundDevices);
     ASSERT_XLINK_PLATFORM(out_amountOfFoundDevices);
     if (in_deviceRequirements.platform == X_LINK_MYRIAD_2) {
@@ -302,11 +339,11 @@ xLinkPlatformErrorCode_t getTcpIpDevices(const deviceDesc_t in_deviceRequirement
         return X_LINK_PLATFORM_ERROR;
     }
 
-    if(in_deviceRequirements.state == X_LINK_UNBOOTED) {
+    if (in_deviceRequirements.state == X_LINK_UNBOOTED) {
         /**
          * There is no condition where unbooted
          * state device to be found using tcp/ip.
-        */
+         */
         return X_LINK_PLATFORM_DEVICE_NOT_FOUND;
     }
 
