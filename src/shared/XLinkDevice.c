@@ -85,8 +85,12 @@ XLinkError_t XLinkInitialize(XLinkGlobalHandler_t* globalHandler)
 #ifdef __DEVICE__
     mvLogLevelSet(MVLOG_FATAL);
     mvLogDefaultLevelSet(MVLOG_FATAL);
+    mvLogLevelSet(MVLOG_DEBUG);
+    mvLogDefaultLevelSet(MVLOG_DEBUG);
 #endif
 
+    mvLogLevelSet(MVLOG_DEBUG);
+    mvLogDefaultLevelSet(MVLOG_DEBUG);
     ASSERT_XLINK(XLINK_MAX_STREAMS <= MAX_POOLS_ALLOC);
     glHandler = globalHandler;
     if (sem_init(&pingSem,0,0)) {

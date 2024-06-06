@@ -35,7 +35,7 @@ typedef enum usbBootError {
     USB_BOOT_TIMEOUT
 } usbBootError_t;
 
-int usbInitialize(void* options);
+//int usbInitialize(void* options);
 int usbInitialize_customdir(void** hContext);
 
 int usb_boot(const char *addr, const void *mvcmd, unsigned size);

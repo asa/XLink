@@ -3,9 +3,9 @@
 
 // libraries
 #ifdef XLINK_LIBUSB_LOCAL
-#include <libusb.h>
+//#include <libusb.h>
 #else
-#include <libusb-1.0/libusb.h>
+//#include <libusb-1.0/libusb.h>
 #endif
 
 #include "XLink/XLinkLog.h"
@@ -62,24 +62,25 @@ static UsbSetupPacket bootBootloaderPacket{
 
 
 static std::mutex mutex;
-static libusb_context* context;
+//static libusb_context* context;
 
-int usbInitialize(void* options){
-    #ifdef __ANDROID__
-        // If Android, set the options as JavaVM (to default context)
-        if(options != nullptr){
-            libusb_set_option(NULL, libusb_option::LIBUSB_OPTION_ANDROID_JAVAVM, options);
-        }
-    #endif
-
-    // // Debug
-    // mvLogLevelSet(MVLOG_DEBUG);
-
-    #if defined(_WIN32) && defined(_MSC_VER)
-        return usbInitialize_customdir((void**)&context);
-    #endif
-    return libusb_init(&context);
-}
+//int usbInitialize(void* options){
+//
+//    #ifdef __ANDROID__
+//        // If Android, set the options as JavaVM (to default context)
+//        if(options != nullptr){
+//            libusb_set_option(NULL, libusb_option::LIBUSB_OPTION_ANDROID_JAVAVM, options);
+//        }
+//    #endif
+//
+//    // // Debug
+//    // mvLogLevelSet(MVLOG_DEBUG);
+//
+//    #if defined(_WIN32) && defined(_MSC_VER)
+//        return usbInitialize_customdir((void**)&context);
+//    #endif
+//    return libusb_init(&context);
+//}
 
 struct pair_hash {
     template <class T1, class T2>
@@ -95,13 +96,14 @@ static std::unordered_map<VidPid, XLinkDeviceState_t, pair_hash> vidPidToDeviceS
     {{0x03E7, 0xf63d}, X_LINK_FLASH_BOOTED},
 };
 
-static std::string getLibusbDevicePath(libusb_device *dev);
-static libusb_error getLibusbDeviceMxId(XLinkDeviceState_t state, std::string devicePath, const libusb_device_descriptor* pDesc, libusb_device *dev, std::string& outMxId);
+//static std::string getLibusbDevicePath(libusb_device *dev);
+//static libusb_error getLibusbDeviceMxId(XLinkDeviceState_t state, std::string devicePath, const libusb_device_descriptor* pDesc, libusb_device *dev, std::string& outMxId);
 static const char* xlink_libusb_strerror(int x);
 #ifdef _WIN32
 std::string getWinUsbMxId(VidPid vidpid, libusb_device* dev);
 #endif
 
+/*
 extern "C" xLinkPlatformErrorCode_t getUSBDevices(const deviceDesc_t in_deviceRequirements,
                                                      deviceDesc_t* out_foundDevices, int sizeFoundDevices,
                                                      unsigned int *out_amountOfFoundDevices) {
@@ -217,7 +219,9 @@ extern "C" xLinkPlatformErrorCode_t getUSBDevices(const deviceDesc_t in_deviceRe
 
     return X_LINK_PLATFORM_SUCCESS;
 }
+*/
 
+/*
 extern "C" xLinkPlatformErrorCode_t refLibusbDeviceByName(const char* name, libusb_device** pdev) {
 
     std::lock_guard<std::mutex> l(mutex);
@@ -257,9 +261,11 @@ extern "C" xLinkPlatformErrorCode_t refLibusbDeviceByName(const char* name, libu
 
     return X_LINK_PLATFORM_SUCCESS;
 }
+*/
 
 
 
+/*
 std::string getLibusbDevicePath(libusb_device *dev) {
 
     std::string devicePath = "";
@@ -496,7 +502,6 @@ const char* xlink_libusb_strerror(int x) {
     return libusb_strerror((libusb_error) x);
 }
 
-
 static libusb_error usb_open_device(libusb_device *dev, uint8_t* endpoint, libusb_device_handle*& handle)
 {
     struct libusb_config_descriptor *cdesc;
@@ -562,6 +567,7 @@ static libusb_error usb_open_device(libusb_device *dev, uint8_t* endpoint, libus
     libusb_close(h);
     return LIBUSB_ERROR_ACCESS;
 }
+
 
 static int send_file(libusb_device_handle* h, uint8_t endpoint, const void* tx_buf, unsigned filesize,uint16_t bcdusb)
 {
@@ -667,9 +673,11 @@ int usb_boot(const char *addr, const void *mvcmd, unsigned size)
 
     return rc;
 }
+*/
 
 
 
+/*
 xLinkPlatformErrorCode_t usbLinkOpen(const char *path, libusb_device_handle*& h)
 {
     using namespace std::chrono;
@@ -706,8 +714,10 @@ xLinkPlatformErrorCode_t usbLinkOpen(const char *path, libusb_device_handle*& h)
         return X_LINK_PLATFORM_ERROR;
     }
 }
+*/
 
 
+/*
 xLinkPlatformErrorCode_t usbLinkBootBootloader(const char *path) {
 
     libusb_device *dev = nullptr;
@@ -751,17 +761,21 @@ xLinkPlatformErrorCode_t usbLinkBootBootloader(const char *path) {
 
     return X_LINK_PLATFORM_SUCCESS;
 }
+*/
 
+/*
 void usbLinkClose(libusb_device_handle *f)
 {
     libusb_release_interface(f, 0);
     libusb_close(f);
 }
+*/
 
 
 
 int usbPlatformConnect(const char *devPathRead, const char *devPathWrite, void **fd)
 {
+        /*
 #if (!defined(USE_USB_VSC))
     #ifdef USE_LINK_JTAG
     struct sockaddr_in serv_addr;
@@ -848,7 +862,7 @@ int usbPlatformConnect(const char *devPathRead, const char *devPathWrite, void *
         return X_LINK_PLATFORM_ERROR;
     }
     return 0;
-#endif  /*USE_LINK_JTAG*/
+#endif  //USE_LINK_JTAG
 #else
 
     libusb_device_handle* usbHandle = nullptr;
@@ -856,7 +870,7 @@ int usbPlatformConnect(const char *devPathRead, const char *devPathWrite, void *
 
     if (ret != X_LINK_PLATFORM_SUCCESS)
     {
-        /* could fail due to port name change */
+         could fail due to port name change 
         return ret;
     }
 
@@ -864,8 +878,8 @@ int usbPlatformConnect(const char *devPathRead, const char *devPathWrite, void *
     // (as file descriptors are reused and can cause a clash with lookups between scheduler and link)
     *fd = createPlatformDeviceFdKey(usbHandle);
 
-#endif  /*USE_USB_VSC*/
-
+#endif  //USE_USB_VSC
+*/
     return 0;
 }
 
@@ -877,6 +891,7 @@ int usbPlatformClose(void *fdKey)
     #ifdef USE_LINK_JTAG
     /*Nothing*/
 #else
+        /*
     if (usbFdRead != -1){
         close(usbFdRead);
         usbFdRead = -1;
@@ -885,6 +900,7 @@ int usbPlatformClose(void *fdKey)
         close(usbFdWrite);
         usbFdWrite = -1;
     }
+    */
 #endif  /*USE_LINK_JTAG*/
 #else
 
@@ -893,7 +909,7 @@ int usbPlatformClose(void *fdKey)
         mvLog(MVLOG_FATAL, "Cannot find USB Handle by key: %" PRIxPTR, (uintptr_t) fdKey);
         return -1;
     }
-    usbLinkClose((libusb_device_handle *) tmpUsbHandle);
+//    usbLinkClose((libusb_device_handle *) tmpUsbHandle);
 
     if(destroyPlatformDeviceFdKey(fdKey)){
         mvLog(MVLOG_FATAL, "Cannot destroy USB Handle key: %" PRIxPTR, (uintptr_t) fdKey);
@@ -918,7 +934,7 @@ int usbPlatformBootFirmware(const deviceDesc_t* deviceDesc, const char* firmware
 }
 
 
-
+/*
 int usb_read(libusb_device_handle *f, void *data, size_t size)
 {
     const int chunk_size = DEFAULT_CHUNKSZ;
@@ -952,9 +968,11 @@ int usb_write(libusb_device_handle *f, const void *data, size_t size)
     }
     return 0;
 }
+*/
 
 int usbPlatformRead(void* fdKey, void* data, int size)
 {
+        /*
     int rc = 0;
 #ifndef USE_USB_VSC
     int nread =  0;
@@ -991,7 +1009,7 @@ int usbPlatformRead(void* fdKey, void* data, int size)
             return -2;
         }
     }
-#endif  /*USE_LINK_JTAG*/
+#endif  //USE_LINK_JTAG
 #else
 
     void* tmpUsbHandle = NULL;
@@ -1002,13 +1020,15 @@ int usbPlatformRead(void* fdKey, void* data, int size)
     libusb_device_handle* usbHandle = (libusb_device_handle*) tmpUsbHandle;
 
     rc = usb_read(usbHandle, data, size);
-#endif  /*USE_USB_VSC*/
-    return rc;
+#endif //USE_USB_VSC
+*/
+    return 0;
 }
 
 int usbPlatformWrite(void *fdKey, void *data, int size)
 {
-    int rc = 0;
+    return 0;
+/*    int rc = 0;
 #ifndef USE_USB_VSC
     int byteCount = 0;
 #ifdef USE_LINK_JTAG
@@ -1047,7 +1067,7 @@ int usbPlatformWrite(void *fdKey, void *data, int size)
            return -2;
        }
     }
-#endif  /*USE_LINK_JTAG*/
+#endif  //USE_LINK_JTAG
 #else
 
     void* tmpUsbHandle = NULL;
@@ -1058,8 +1078,10 @@ int usbPlatformWrite(void *fdKey, void *data, int size)
     libusb_device_handle* usbHandle = (libusb_device_handle*) tmpUsbHandle;
 
     rc = usb_write(usbHandle, data, size);
-#endif  /*USE_USB_VSC*/
+#endif  //USE_USB_VSC
     return rc;
+
+*/
 }
 
 #ifdef _WIN32

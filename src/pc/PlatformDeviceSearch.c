@@ -6,25 +6,7 @@
 
 #include "XLinkPlatform.h"
 #include "XLinkPlatformErrorUtils.h"
-// #include "usb_host.h"
-// these are copied in from usb_host.h
-#define AUTO_VID 0
-#define AUTO_PID 0
-#define AUTO_UNBOOTED_PID -1
-
-#define DEFAULT_OPENVID 0x03E7
-#ifdef ALTERNATE_PID
-#define DEFAULT_OPENPID 0xf63c  // Once opened in VSC mode, VID/PID change
-#else
-#define DEFAULT_OPENPID 0xf63b  // Once opened in VSC mode, VID/PID change
-#endif
-#define DEFAULT_UNBOOTVID 0x03E7
-#define DEFAULT_UNBOOTPID_2485 0x2485
-#define DEFAULT_UNBOOTPID_2150 0x2150
-#define DEFAULT_BOOTLOADER_PID 0xf63c
-#define DEFAULT_FLASH_BOOTED_PID 0xf63d
-#define DEFAULT_CHUNKSZ 1024 * 1024
-
+#include "usb_host.h"
 #include "pcie_host.h"
 #include "tcpip_host.h"
 #include "XLinkStringUtils.h"
@@ -40,7 +22,7 @@
 static int platformToPid(const XLinkPlatform_t platform, const XLinkDeviceState_t state);
 static pciePlatformState_t xlinkDeviceStateToPciePlatformState(const XLinkDeviceState_t state);
 
-// static xLinkPlatformErrorCode_t parseUsbBootError(usbBootError_t rc);
+static xLinkPlatformErrorCode_t parseUsbBootError(usbBootError_t rc);
 static xLinkPlatformErrorCode_t parsePCIeHostError(pcieHostError_t rc);
 
 // xLinkPlatformErrorCode_t getUSBDevices(const deviceDesc_t in_deviceRequirements,
@@ -238,19 +220,19 @@ pciePlatformState_t xlinkDeviceStateToPciePlatformState(const XLinkDeviceState_t
     }
 }
 
-//xLinkPlatformErrorCode_t parseUsbBootError(usbBootError_t rc) {
-//    switch (rc) {
-//        case USB_BOOT_SUCCESS:
-//            return X_LINK_PLATFORM_SUCCESS;
-//        case USB_BOOT_DEVICE_NOT_FOUND:
-//            return X_LINK_PLATFORM_DEVICE_NOT_FOUND;
-//        case USB_BOOT_TIMEOUT:
-//            return X_LINK_PLATFORM_TIMEOUT;
-//        case USB_BOOT_ERROR:
-//        default:
-//            return X_LINK_PLATFORM_ERROR;
-//    }
-//}
+xLinkPlatformErrorCode_t parseUsbBootError(usbBootError_t rc) {
+    switch (rc) {
+        case USB_BOOT_SUCCESS:
+            return X_LINK_PLATFORM_SUCCESS;
+        case USB_BOOT_DEVICE_NOT_FOUND:
+            return X_LINK_PLATFORM_DEVICE_NOT_FOUND;
+        case USB_BOOT_TIMEOUT:
+            return X_LINK_PLATFORM_TIMEOUT;
+        case USB_BOOT_ERROR:
+        default:
+            return X_LINK_PLATFORM_ERROR;
+    }
+}
 
 xLinkPlatformErrorCode_t parsePCIeHostError(pcieHostError_t rc) {
     switch (rc) {
